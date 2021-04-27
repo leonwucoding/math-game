@@ -8,35 +8,35 @@
     <script src="https://unpkg.com/vue@next"></script>
     <style>
         #main>div{
-				margin-bottom: 10px;
-			}
-			.expression{
-				/*word-spacing: 10px;*/
-			}
-			.result>input{
-				border:none;
-				border-bottom: 1px dashed;
-				width: 30px;
-			}
-			.content{
-				display: flex;
-			}
-			.content>div{
-				width: 300px;
-				border: 1px solid #000;
-			}
-			.records{
-				overflow: scroll;
-			}
-			#menu>div{
-				width:400px;
-				text-align: center;
-			}
-			#menu{
-				border:1px dashed black;
-				width: 430px
-			}
-		</style>
+                margin-bottom: 10px;
+            }
+            .expression{
+                /*word-spacing: 10px;*/
+            }
+            .result>input{
+                border:none;
+                border-bottom: 1px dashed;
+                width: 30px;
+            }
+            .content{
+                display: flex;
+            }
+            .content>div{
+                width: 300px;
+                border: 1px solid #000;
+            }
+            .records{
+                overflow: scroll;
+            }
+            #menu>div{
+                width:400px;
+                text-align: center;
+            }
+            #menu{
+                border:1px dashed black;
+                width: 430px
+            }
+        </style>
 </head>
 
 <body>
@@ -49,6 +49,11 @@
                 <option value="normal">Normal</option>
                 <option value="hard">Hard</option>
             </select>
+            <br>
+            How many questions:
+            <input type="text" v-model="howManyQuestion" style="width: 40px" />
+            maximum number:
+            <input type="text" v-model="maxNum" style="width: 40px" />
             <div>
                 <button @click="generateQuestions" class="btn btn-success" style="height: 40px" :disabled="name==''">
                     start
@@ -104,7 +109,8 @@ const app = {
             difficulty: "easy",
             beginTime: null,
             records: [],
-
+            howManyQuestion: 10,
+            maxNum: 100
         }
     },
 
@@ -120,8 +126,8 @@ const app = {
                 if (eval(q.expression) == q.answer) {
                     q.isCorrect = true;
                     correctCounter++;
-                }else{
-                	q.correctAnswer=eval(q.expression);
+                } else {
+                    q.correctAnswer = eval(q.expression);
                 }
             }
             this.score = correctCounter * 100 / this.questions.length;
@@ -139,43 +145,23 @@ const app = {
             this.questions = [];
             this.status = 'answering';
             this.beginTime = new Date();
-
-            let operator;
-            switch (this.difficulty) {
-                case "normal":
-                    operator = "*";
-                    break;
-                case "hard":
-                    operator = "/";
-                    break;
-                default:
-                    operator = "+";
-            }
-
-            for (var i = 1; i <= 9; i++) {
-                let num1 = randomNumber(10, 30);
-                let num2 = randomNumber(10, 30);
+            for (var i = 1; i <= this.howManyQuestion; i++) {
+                let num1 = randomNumber(1, this.maxNum);
+                let num2 = randomNumber(1, this.maxNum);
                 let exp;
-                switch (operator) {
-                    case "/":
-                        if (num1 > num2) {
-                            exp = `${num1} ${operator} ${num1}`;
-                            break;
-                        } else {
-                            exp = `${num2} ${operator} ${num1}`;
-                            break;
-                        }
-
-
-                    case "*":
-                        exp = `${num1} ${operator} ${num2}`;
+                switch (this.difficulty) {
+                    case "hard":
+                        exp = `${num1 * num2} / ${num1}`;
                         break;
-                    case "+":
+
+                    case "normal":
+                        exp = `${num1} * ${num2}`;
+                        break;
+                    case "easy":
+                        let operator = i % 2==1?'+':'-';
                         exp = `${num1} ${operator} ${num2}`;
                         break;
                 }
-
-
 
                 this.questions.push({ expression: exp });
             }
