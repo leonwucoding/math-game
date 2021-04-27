@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Angela Math Learning</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <script src="https://unpkg.com/vue@next"></script>
+    <style>
+        #main>div{
+				margin-bottom: 10px;
+			}
+			.expression{
+				/*word-spacing: 10px;*/
+			}
+			.result>input{
+				border:none;
+				border-bottom: 1px dashed;
+				width: 30px;
+			}
+			.content{
+				display: flex;
+			}
+			.content>div{
+				width: 300px;
+				border: 1px solid #000;
+			}
+			.records{
+				overflow: scroll;
+			}
+		</style>
+</head>
+
+<body> 
+    <div id="main">
+        <div>
+            <input type="text" placeholder="input your name" v-model="name" />
+            select difficulty:
+            <select v-model="difficulty">
+                <option value="easy">Easy</option>
+                <option value="normal">Normal</option>
+                <option value="hard">Hard</option>
+            </select>
+            <button @click="generateQuestions">start</button>
+        </div>
+        <div class="content">
+            <div>
+                <div v-for="q in questions">
+                    <div>
+                        <span class="expression">{{q.expression}} =</span>
+                        <span class="result"><input type="text" v-model="q.answer" /></span>
+                        <span v-if="status=='check'">
+                            <i v-if="q.isCorrect" class="fa fa-check" aria-hidden="true"></i>
+                            <i v-else class="fa fa-times" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                </div>
+                <div>
+                    <button v-on:click="checkAnswer">check</button>
+                </div>
+                <div v-if="status=='check'">
+                    Hello {{name}}, your score is {{score}}
+                </div>
+            </div>
+            <div class="records">
+            	<ul v-for="record in records">
+            		<li>{{record.timeSpended/1000}} sec</li>
+            	</ul>
+        	</div>
+        </div>
+    </div>
+</body>
+<script type="text/javascript">
+function randomNumber(min, max) {
+    return min + Math.floor(Math.random() * (max - min));
+}
+const app = {
+    data() {
+        return {
+            name: "",
+            questions: [],
+            status: "",
+            difficulty: "easy",
+            beginTime: null,
+            records: []
+        }
+    },
+    methods: {
+        checkAnswer() {
+            if (this.questions.length == 0) {
+                return;
+            }
+            this.status = "check";
+            let correctCounter = 0;
+            for (var i = 0; i < this.questions.length; i++) {
+                let q = this.questions[i];
+                if (eval(q.expression) == q.answer) {
+                    q.isCorrect = true;
+                    correctCounter++;
+                }
+            }
+            this.score = correctCounter * 100 / this.questions.length;
+            result = {
+                beginTime: this.beginTime,
+                endTime: new Date(),
+                timeSpended: (new Date() - this.beginTime),
+                score: this.score
+            }
+            this.records.push(result);
+        },
+
+        generateQuestions() {
+            this.questions = [];
+            this.status = null;
+            this.beginTime = new Date();
+
+            let operator;
+            switch (this.difficulty) {
+                case "normal":
+                    operator = "*";
+                    break;
+                case "hard":
+                    operator = "/";
+                    break;
+                default:
+                    operator = "+";
+            }
+
+            for (var i = 1; i <= 9; i++) {
+                let num1 = randomNumber(1, 9);
+                let num2 = randomNumber(10, 30);
+                let exp = `${num1} ${operator} ${num2}`;
+                this.questions.push({ expression: exp });
+            }
+        }
+    }
+}
+Vue.createApp(app).mount('#main');
+</script>
+
+</html>

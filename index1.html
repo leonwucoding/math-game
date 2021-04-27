@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Angela Math Learning</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <script src="https://unpkg.com/vue@next"></script>
+    <style>
+        #main>div{
+				margin-bottom: 10px;
+			}
+			.expression{
+				/*word-spacing: 10px;*/
+			}
+			.result>input{
+				border:none;
+				border-bottom: 1px dashed;
+				width: 30px;
+			}
+			.content{
+				display: flex;
+			}
+			.content>div{
+				width: 300px;
+				border: 1px solid #000;
+			}
+			.records{
+				overflow: scroll;
+			}
+			#menu>div{
+				width:400px;
+				text-align: center;
+			}
+			#menu{
+				border:1px dashed black;
+				width: 430px
+			}
+		</style>
+</head>
+
+<body>
+    <div id="main">
+        <div id="menu" v-if="status!='answering'">
+            <input type="text" placeholder="input your name" v-model="name" />
+            select difficulty:
+            <select v-model="difficulty">
+                <option value="easy">Easy</option>
+                <option value="normal">Normal</option>
+                <option value="hard">Hard</option>
+            </select>
+            <div>
+                <button @click="generateQuestions" class="btn btn-success" style="height: 40px" :disabled="name==''">
+                    start
+                </button>
+            </div>
+        </div>
+        <div class="content">
+            <div>
+                <div v-for="q in questions">
+                    <div>
+                        <span class="expression">{{q.expression}} =</span>
+                        <span class="result"><input type="text" v-model="q.answer" /></span>
+                        <span v-if="status=='check'">
+                            <i v-if="q.isCorrect" class="fa fa-check" aria-hidden="true"></i>
+                            <i v-else class="fa fa-times" aria-hidden="true"></i>
+                            {{q.correctAnswer}}
+                        </span>
+                    </div>
+                </div>
+                <div>
+                    <button v-if="status=='answering'" v-on:click="checkAnswer">
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+                <div v-if="status=='check'">
+                    Hello {{name}}, your score is {{score}}%
+                    <br>
+                    <button @click="generateQuestions">
+                        <i class="fas fa-redo-alt"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="records">
+                <ul v-for="record in records">
+                    <li>time: {{Math.floor(record.timeSpended/1000)}} sec
+                        <br>
+                        difficulty: {{record.difficulty}}</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+<script type="text/javascript">
+function randomNumber(min, max) {
+    return min + Math.floor(Math.random() * (max - min));
+}
+const app = {
+    data() {
+        return {
+            name: "",
+            questions: [],
+            status: "",
+            difficulty: "easy",
+            beginTime: null,
+            records: [],
+
+        }
+    },
+
+    methods: {
+        checkAnswer() {
+            if (this.questions.length == 0) {
+                return;
+            }
+            this.status = "check";
+            let correctCounter = 0;
+            for (var i = 0; i < this.questions.length; i++) {
+                let q = this.questions[i];
+                if (eval(q.expression) == q.answer) {
+                    q.isCorrect = true;
+                    correctCounter++;
+                }else{
+                	q.correctAnswer=eval(q.expression);
+                }
+            }
+            this.score = correctCounter * 100 / this.questions.length;
+            result = {
+                beginTime: this.beginTime,
+                endTime: new Date(),
+                timeSpended: (new Date() - this.beginTime),
+                score: this.score,
+                difficulty: this.difficulty
+            }
+            this.records.push(result);
+        },
+
+        generateQuestions() {
+            this.questions = [];
+            this.status = 'answering';
+            this.beginTime = new Date();
+
+            let operator;
+            switch (this.difficulty) {
+                case "normal":
+                    operator = "*";
+                    break;
+                case "hard":
+                    operator = "/";
+                    break;
+                default:
+                    operator = "+";
+            }
+
+            for (var i = 1; i <= 9; i++) {
+                let num1 = randomNumber(10, 30);
+                let num2 = randomNumber(10, 30);
+                let exp;
+                switch (operator) {
+                    case "/":
+                        if (num1 > num2) {
+                            exp = `${num1} ${operator} ${num1}`;
+                            break;
+                        } else {
+                            exp = `${num2} ${operator} ${num1}`;
+                            break;
+                        }
+
+
+                    case "*":
+                        exp = `${num1} ${operator} ${num2}`;
+                        break;
+                    case "+":
+                        exp = `${num1} ${operator} ${num2}`;
+                        break;
+                }
+
+
+
+                this.questions.push({ expression: exp });
+            }
+        }
+    }
+}
+Vue.createApp(app).mount('#main');
+</script>
+
+</html>
